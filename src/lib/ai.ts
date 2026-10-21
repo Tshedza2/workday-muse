@@ -22,7 +22,7 @@ export class AINotConfiguredError extends Error {
   }
 }
 
-export const AI_ENDPOINT: string | undefined = import.meta.env.VITE_AI_ENDPOINT;
+export const AI_ENDPOINT: string | undefined = import.meta.env["VITE_AI_ENDPOINT"];
 export const isAIConfigured = () => Boolean(AI_ENDPOINT);
 
 export async function generateAI(system: string, messages: ChatMessage[]): Promise<string> {
