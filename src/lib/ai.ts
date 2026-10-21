@@ -1,47 +1,23 @@
 /**
- * AI integration point.
- *
- * This app is frontend-only, so it has NO AI built in. Every tool calls
- * `generateAI()`, which sends a request to the URL in VITE_AI_ENDPOINT.
- * Until you set that variable, the app shows a clear "AI not connected" message
- * instead of fake answers.
- *
- * Expected endpoint contract (you build this service yourself):
- *   POST { system: string, messages: {role:"user"|"assistant", content:string}[] }
- *   -> 200 { text: string }
- * Never put a secret AI key in frontend code — keep it inside your endpoint.
+ * AI integration point. Every tool calls `generateAI()`, which runs a server
+ * function (src/lib/ai.functions.ts) that talks to Lovable AI. The secret key
+ * stays on the server — never in this browser code.
  */
+import { generateAIServer } from "./ai.functions";
 
 export type ChatMessage = { role: "user" | "assistant"; content: string };
 
-export class AINotConfiguredError extends Error {
-  constructor() {
-    super(
-      "AI is not connected yet. This is a frontend-only app — set VITE_AI_ENDPOINT to your own AI service URL to enable live generation.",
-    );
-  }
-}
-
-export const AI_ENDPOINT: string | undefined = import.meta.env["VITE_AI_ENDPOINT"];
-export const isAIConfigured = () => Boolean(AI_ENDPOINT);
+export const isAIConfigured = () => true;
 
 export async function generateAI(system: string, messages: ChatMessage[]): Promise<string> {
-  if (!AI_ENDPOINT) throw new AINotConfiguredError();
-  let res: Response;
+  let res: { text: string; error?: string };
   try {
-    res = await fetch(AI_ENDPOINT, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ system, messages }),
-    });
+    res = await generateAIServer({ data: { system, messages } });
   } catch {
-    throw new Error("Could not reach the AI service. Check your connection and the endpoint URL.");
+    throw new Error("Could not reach the AI service. Check your connection and try again.");
   }
-  if (res.status === 429) throw new Error("Too many requests. Please wait a moment and try again.");
-  if (!res.ok) throw new Error(`The AI service returned an error (${res.status}).`);
-  const data = (await res.json().catch(() => null)) as { text?: string } | null;
-  if (!data?.text) throw new Error("The AI service returned an empty response.");
-  return data.text;
+  if (res.error) throw new Error(res.error);
+  return res.text;
 }
 
 /* ---------- Structured prompts for each tool ---------- */
