@@ -9,4 +9,4 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 
-- AI calls go only through src/lib/ai.ts (generateAI + per-tool prompt builders); app is frontend-only, so the endpoint comes from VITE_AI_ENDPOINT and no keys live in the browser.
+- AI calls go only through src/lib/ai.ts (generateAI + prompt builders), which calls the server function in src/lib/ai.functions.ts (Lovable AI Gateway); keeps the key server-side.
