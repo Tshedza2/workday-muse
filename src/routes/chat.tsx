@@ -29,7 +29,9 @@ function ChatPage() {
   const [error, setError] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), [messages, loading]);
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading]);
 
   async function send(text: string) {
     const content = text.trim();
